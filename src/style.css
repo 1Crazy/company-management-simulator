@@ -1,0 +1,209 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  --control-navy: #143a7b;
+  --control-navy-soft: rgba(30, 64, 175, 0.08);
+  --control-sky: #4f8df7;
+  --control-ink: #132238;
+  --control-amber: #f0a61a;
+  --control-success: #0f9f6e;
+  --control-danger: #d9485f;
+  --control-panel-border: rgba(20, 58, 123, 0.12);
+}
+
+@layer base {
+  html {
+    font-family: "Fira Sans", "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    background:
+      radial-gradient(circle at top left, rgba(240, 166, 26, 0.12), transparent 22%),
+      radial-gradient(circle at top right, rgba(79, 141, 247, 0.18), transparent 26%),
+      linear-gradient(180deg, #f7f9fc 0%, #eef4fb 46%, #edf2f7 100%);
+    color: var(--control-ink);
+  }
+
+  body {
+    @apply min-h-screen antialiased;
+    background-image:
+      linear-gradient(rgba(20, 58, 123, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(20, 58, 123, 0.04) 1px, transparent 1px);
+    background-position: center;
+    background-size: 28px 28px;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  button,
+  [role="button"] {
+    cursor: pointer;
+  }
+
+  button:focus-visible,
+  input:focus-visible {
+    outline: 3px solid rgba(79, 141, 247, 0.28);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .panel-surface {
+    @apply rounded-[28px] border bg-white/78 shadow-[0_18px_52px_rgba(17,24,39,0.08)] backdrop-blur-xl;
+    border-color: var(--control-panel-border);
+  }
+
+  .panel-glow {
+    box-shadow:
+      0 22px 64px rgba(15, 23, 42, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  }
+
+  .panel-soft {
+    @apply rounded-[24px] border border-slate-900/8 bg-white/90 shadow-[0_12px_28px_rgba(15,23,42,0.05)];
+  }
+
+  .mono-title {
+    font-family: "Fira Code", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  }
+
+  .button-primary {
+    @apply inline-flex min-h-11 items-center justify-center rounded-full px-4 py-2 text-sm font-semibold text-white transition duration-200 disabled:cursor-not-allowed disabled:opacity-55;
+    background: linear-gradient(135deg, var(--control-navy) 0%, var(--control-sky) 100%);
+    box-shadow: 0 14px 28px rgba(20, 58, 123, 0.22);
+  }
+
+  .button-primary:hover {
+    box-shadow: 0 18px 34px rgba(20, 58, 123, 0.28);
+    transform: translateY(-1px);
+  }
+
+  .button-secondary {
+    @apply inline-flex min-h-11 items-center justify-center rounded-full border px-4 py-2 text-sm font-semibold text-slate-800 transition duration-200;
+    border-color: rgba(20, 58, 123, 0.12);
+    background: rgba(255, 255, 255, 0.82);
+  }
+
+  .button-secondary:hover {
+    border-color: rgba(20, 58, 123, 0.24);
+    background: rgba(255, 255, 255, 0.96);
+    transform: translateY(-1px);
+  }
+
+  .status-pill {
+    @apply inline-flex min-h-9 items-center rounded-full border px-3 text-xs font-semibold uppercase tracking-[0.08em];
+  }
+
+  .status-pill-neutral {
+    @apply border-slate-800/8 bg-white/85 text-slate-700;
+  }
+
+  .status-pill-success {
+    @apply border-emerald-600/16 bg-emerald-500/10 text-emerald-700;
+  }
+
+  .status-pill-warning {
+    @apply border-amber-600/16 bg-amber-500/10 text-amber-800;
+  }
+
+  .status-pill-danger {
+    @apply border-rose-600/16 bg-rose-500/10 text-rose-700;
+  }
+
+  .metric-chip {
+    @apply inline-flex min-h-9 items-center rounded-full border px-3 text-xs font-semibold tracking-[0.08em] uppercase;
+  }
+
+  .metric-chip-positive {
+    @apply inline-flex min-h-9 items-center rounded-full border border-emerald-600/15 bg-emerald-500/10 px-3 text-xs font-semibold uppercase tracking-[0.08em] text-emerald-700;
+  }
+
+  .metric-chip-warning {
+    @apply inline-flex min-h-9 items-center rounded-full border border-amber-600/15 bg-amber-500/12 px-3 text-xs font-semibold uppercase tracking-[0.08em] text-amber-800;
+  }
+
+  .metric-chip-danger {
+    @apply inline-flex min-h-9 items-center rounded-full border border-rose-600/15 bg-rose-500/10 px-3 text-xs font-semibold uppercase tracking-[0.08em] text-rose-700;
+  }
+
+  .metric-chip-neutral {
+    @apply inline-flex min-h-9 items-center rounded-full border border-slate-800/10 bg-slate-900/5 px-3 text-xs font-semibold uppercase tracking-[0.08em] text-slate-700;
+  }
+
+  .guide-card {
+    @apply rounded-[24px] border border-slate-900/8 bg-white/88 px-4 py-4 shadow-[0_10px_24px_rgba(15,23,42,0.05)];
+  }
+
+  .guide-badge {
+    @apply inline-flex min-h-9 min-w-9 items-center justify-center rounded-full bg-[var(--control-navy)] px-3 text-xs font-bold uppercase tracking-[0.12em] text-white;
+  }
+
+  .guide-badge-subtle {
+    @apply inline-flex min-h-8 items-center rounded-full border border-slate-900/8 bg-white/88 px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500;
+  }
+
+  .field-input {
+    @apply min-h-11 flex-1 rounded-2xl border border-slate-900/12 bg-white/96 px-4 text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)];
+  }
+
+  .stepper-button {
+    @apply inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-900/10 bg-white/88 text-lg font-semibold text-slate-700 transition duration-200;
+  }
+
+  .stepper-button:hover {
+    border-color: rgba(20, 58, 123, 0.22);
+    background: rgba(255, 255, 255, 0.98);
+  }
+
+  .chart-shell,
+  .chart-empty {
+    @apply grid gap-3;
+  }
+
+  .chart-head {
+    @apply flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between;
+  }
+
+  .chart-head strong {
+    @apply block text-base text-[var(--control-navy)];
+  }
+
+  .chart-head span,
+  .chart-empty span {
+    @apply text-sm leading-6 text-slate-600;
+  }
+
+  .chart-legend,
+  .chart-legend-item {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .chart-legend-dot {
+    @apply h-2.5 w-2.5 rounded-full;
+  }
+
+  .chart-grid-line {
+    stroke: rgba(15, 23, 42, 0.08);
+    stroke-width: 1;
+  }
+
+  .chart-zero-line {
+    stroke: rgba(15, 23, 42, 0.16);
+    stroke-dasharray: 5 5;
+  }
+
+  .chart-axis-label {
+    fill: #64748b;
+    font-size: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
