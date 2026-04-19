@@ -38,7 +38,7 @@ const chartMarkup = computed(() => {
       props.session.state.history,
       [
         { color: "var(--control-navy)", fill: "rgba(20, 58, 123, 0.12)", key: "quality", label: "质量" },
-        { color: "var(--control-amber)", key: "morale", label: "士气" }
+        { color: "var(--control-sky)", key: "morale", label: "士气" }
       ],
       { title: "质量与士气", subtitle: "产品力和团队状态决定长周期上限。" }
     );
@@ -48,7 +48,7 @@ const chartMarkup = computed(() => {
     props.session.state.history,
     [
       { color: "var(--control-navy)", fill: "rgba(20, 58, 123, 0.12)", key: "revenue", label: "营收" },
-      { color: "var(--control-amber)", key: "profit", label: "经营利润" }
+      { color: "var(--control-success)", key: "profit", label: "经营利润" }
     ],
     { title: "营收与利润趋势", subtitle: "观察营收增长和利润拐点是否同步出现。" }
   );
@@ -56,8 +56,8 @@ const chartMarkup = computed(() => {
 
 function tabClass(tabId: ChartView) {
   return activeView.value === tabId
-    ? "border-transparent bg-[var(--control-navy)] text-white shadow-[0_10px_24px_rgba(20,58,123,0.18)]"
-    : "border-slate-900/10 bg-white/88 text-slate-700 hover:border-[var(--control-navy)]/22 hover:bg-white";
+    ? "border-[rgba(169,124,47,0.22)] bg-[linear-gradient(180deg,#6f94bf_0%,#2a4e78_58%,#183555_100%)] text-white shadow-[0_10px_22px_rgba(22,46,77,0.18)]"
+    : "border-slate-900/8 bg-[rgba(241,247,253,0.94)] text-slate-700 hover:border-[var(--control-navy)]/20 hover:bg-white";
 }
 </script>
 
@@ -66,7 +66,7 @@ function tabClass(tabId: ChartView) {
     <article class="panel-surface panel-glow px-4 py-4">
       <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
-          <div class="text-xs font-bold uppercase tracking-[0.12em] text-[var(--control-navy)]">Trend Lens</div>
+          <div class="text-xs font-bold tracking-[0.12em] text-[var(--control-navy)]">趋势镜头</div>
           <h2 class="mono-title mt-2 text-2xl text-[var(--control-navy)]">趋势观察</h2>
           <p class="mt-2 text-sm leading-6 text-slate-600">不再把图表全部堆开，按问题切换查看，减少纵向滚动。</p>
         </div>
@@ -85,7 +85,7 @@ function tabClass(tabId: ChartView) {
       </div>
 
       <div class="mt-4 rounded-[24px] border border-slate-900/8 bg-white/82 px-4 py-4">
-        <div class="mb-3 text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+        <div class="mb-3 text-xs font-bold tracking-[0.12em] text-slate-500">
           {{ chartTabs.find((item) => item.id === activeView)?.subtitle }}
         </div>
         <div v-html="chartMarkup"></div>
@@ -95,26 +95,26 @@ function tabClass(tabId: ChartView) {
     <article class="panel-surface panel-glow px-5 py-5">
       <div class="grid gap-3">
         <div>
-          <div class="text-xs font-bold uppercase tracking-[0.12em] text-[var(--control-navy)]">Operating Status</div>
+          <div class="text-xs font-bold tracking-[0.12em] text-[var(--control-navy)]">经营状态</div>
           <h2 class="mono-title mt-2 text-2xl text-[var(--control-navy)]">经营状态面板</h2>
           <p class="mt-2 text-sm leading-6 text-slate-600">保留当前局面最值得盯的状态值，不再单独占一整行。</p>
         </div>
 
         <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-1">
           <div class="panel-soft px-4 py-4">
-            <span class="block text-xs font-bold uppercase tracking-[0.12em] text-slate-500">债务</span>
+            <span class="block text-xs font-bold tracking-[0.12em] text-slate-500">债务</span>
             <strong class="mono-title mt-2 block text-xl text-[var(--control-navy)]">{{ formatCurrency(session.state.debt) }}</strong>
           </div>
           <div class="panel-soft px-4 py-4">
-            <span class="block text-xs font-bold uppercase tracking-[0.12em] text-slate-500">品牌</span>
+            <span class="block text-xs font-bold tracking-[0.12em] text-slate-500">品牌</span>
             <strong class="mono-title mt-2 block text-xl text-[var(--control-navy)]">{{ Math.round(session.state.brand) }}</strong>
           </div>
           <div class="panel-soft px-4 py-4">
-            <span class="block text-xs font-bold uppercase tracking-[0.12em] text-slate-500">员工规模</span>
+            <span class="block text-xs font-bold tracking-[0.12em] text-slate-500">员工规模</span>
             <strong class="mono-title mt-2 block text-xl text-[var(--control-navy)]">{{ session.state.employees }} 人</strong>
           </div>
           <div class="panel-soft px-4 py-4">
-            <span class="block text-xs font-bold uppercase tracking-[0.12em] text-slate-500">自动存档</span>
+            <span class="block text-xs font-bold tracking-[0.12em] text-slate-500">自动存档</span>
             <strong class="mono-title mt-2 block text-xl text-[var(--control-navy)]">{{ formatDateTime(autoSaveStamp) }}</strong>
           </div>
         </div>

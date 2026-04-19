@@ -1,8 +1,5 @@
-# simulation-ui-experience Specification
+## MODIFIED Requirements
 
-## Purpose
-定义公司经营模拟在开局页、经营主界面和辅助抽屉中的布局、视觉层级、中文文案与动态反馈规则，保证它既有策略游戏氛围，又能支撑长时间经营操作。
-## Requirements
 ### Requirement: Operations control-room layout
 系统 SHALL 在桌面端采用“主操作区 + 侧边控制塔”的非对称控制室布局，使经营方案区获得足够宽度，趋势与反馈区使用渐进披露而不是默认全量堆叠。
 
@@ -19,11 +16,11 @@
 - **THEN** 系统将核心区域按优先级重排为纵向分段布局，并保留对关键摘要和主操作按钮的快速访问
 
 ### Requirement: `ui-ux-pro-max`-driven visual system
-系统 SHALL 使用更具策略经营游戏氛围的视觉系统，采用深海蓝主色、雾白底、金色点缀和清晰的盈亏/风险状态色，同时保持文本对比度和数据可读性。
+系统 SHALL 使用更具策略经营游戏氛围的视觉系统，采用暖石背景、深炭标题、金色主操作强调和清晰的盈亏/风险状态色，同时保持文本对比度和数据可读性。
 
 #### Scenario: Rendering the control-room palette
 - **WHEN** 玩家进入开局面板或经营主界面
-- **THEN** 系统使用统一的浅色控制台背景、深海蓝结构色、蓝金主操作强调和独立的成功/失败状态色，使界面更接近策略经营游戏而不是普通后台
+- **THEN** 系统使用统一的暖中性色背景、深炭主文字、金色 CTA、冷色数据辅助色和独立的成功/失败状态色，替换当前偏普通后台化的浅蓝体系
 
 #### Scenario: Distinguishing financial states
 - **WHEN** 界面展示盈利、亏损、风险或预警状态
@@ -32,6 +29,8 @@
 #### Scenario: Rendering typography hierarchy
 - **WHEN** 界面展示经营指标、正文说明和操作标签
 - **THEN** 系统对高权重数字和标题使用更强对比的标题层级，对正文和表单维持长时间操作下的可读性
+
+## ADDED Requirements
 
 ### Requirement: Chinese-first interface copy
 系统 SHALL 在核心操作界面中优先使用中文文案，避免无必要的英文标签和说明。
@@ -43,25 +42,3 @@
 #### Scenario: Preserving English only when necessary
 - **WHEN** 某个内容属于技术术语、依赖名或必须保留的专有标识
 - **THEN** 系统仅在确有必要时保留英文，并保持中文作为主要界面语言
-
-### Requirement: Accessible dense interactions
-系统 SHALL 保证数据密集界面中的卡片、图标按钮、表单项和错误提示具备完整的可访问性交互。
-
-#### Scenario: Using keyboard navigation
-- **WHEN** 用户仅通过键盘浏览主界面并操作经营控件
-- **THEN** 系统提供符合视觉顺序的焦点移动、可见焦点态和可触达的核心功能
-
-#### Scenario: Triggering a validation error
-- **WHEN** 玩家提交无效经营方案而触发校验错误
-- **THEN** 系统以可见文本和可播报提示展示错误信息，并定位到对应问题区域
-
-### Requirement: Controlled feedback and motion
-系统 SHALL 为关键数据变化和交互热点提供克制、稳定的反馈效果，并尊重减少动态效果设置。
-
-#### Scenario: Hovering over an interactive card
-- **WHEN** 用户悬停或聚焦可点击卡片、表格行或图表数据点
-- **THEN** 系统展示阴影、描边、高亮或 tooltip 等明确反馈，而不造成布局跳动
-
-#### Scenario: Preferring reduced motion
-- **WHEN** 用户设备启用了减少动态效果偏好
-- **THEN** 系统停用非必要动画，仅保留不影响理解的最小状态反馈

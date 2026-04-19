@@ -1,10 +1,15 @@
 <script setup lang="ts">
+import { computed, watchEffect } from "vue";
+import { RouterView, useRoute, useRouter } from "vue-router";
 import AppTopBar from "@/components/common/AppTopBar.vue";
 import ConfirmModal from "@/components/common/ConfirmModal.vue";
 import HelpDrawer from "@/components/common/HelpDrawer.vue";
-import GameScreen from "@/components/game/GameScreen.vue";
-import MenuScreen from "@/components/setup/MenuScreen.vue";
+import { buildPageTitle } from "@/router/page-title";
+import type { ScreenMode } from "@/types/app";
 import { useSimulatorApp } from "@/composables/useSimulatorApp";
+
+const route = useRoute();
+const router = useRouter();
 
 const {
   applyDecisionPreset,
@@ -33,7 +38,6 @@ const {
   saveCatalog,
   scenarioId,
   scenarios,
-  screen,
   selectDifficulty,
   selectScenario,
   session,
@@ -45,11 +49,52 @@ const {
   updateDraftField
 } = useSimulatorApp();
 
+const screen = computed<ScreenMode>(() => (route.name === "game" ? "game" : "menu"));
+
+watchEffect(() => {
+  document.title = buildPageTitle(screen.value, session.value?.state.companyName);
+});
+
 function tagClass(tone: string) {
   if (tone === "positive") return "metric-chip-positive";
   if (tone === "warning" || tone === "negative") return "metric-chip-warning";
   if (tone === "danger") return "metric-chip-danger";
   return "metric-chip-neutral";
+}
+
+async function navigateToGame() {
+  if (route.name !== "game") {
+    await router.push({ name: "game" });
+  }
+}
+
+async function navigateToSetup() {
+  if (route.name !== "setup") {
+    await router.push({ name: "setup" });
+  }
+}
+
+async function handleStartScenario() {
+  if (!startScenario()) {
+    return;
+  }
+
+  await navigateToGame();
+}
+
+async function handleRestoreSession(slotId: string) {
+  if (!restoreSession(slotId)) {
+    return;
+  }
+
+  await navigateToGame();
+}
+
+async function handleConfirmModal() {
+  const action = confirmModal();
+  if (action === "back-to-menu") {
+    await navigateToSetup();
+  }
 }
 </script>
 
@@ -62,9 +107,9 @@ function tagClass(tone: string) {
   </a>
 
   <div class="relative isolate min-h-screen overflow-hidden">
-    <div class="pointer-events-none absolute inset-x-0 top-0 h-[320px] bg-[radial-gradient(circle_at_top,rgba(30,64,175,0.18),transparent_58%)]"></div>
-    <div class="pointer-events-none absolute right-[-120px] top-24 h-[320px] w-[320px] rounded-full bg-[radial-gradient(circle,rgba(245,158,11,0.18),transparent_64%)] blur-3xl"></div>
-    <div class="pointer-events-none absolute left-[-80px] top-[40%] h-[260px] w-[260px] rounded-full bg-[radial-gradient(circle,rgba(59,130,246,0.14),transparent_62%)] blur-3xl"></div>
+    <div class="pointer-events-none absolute inset-x-0 top-0 h-[320px] bg-[radial-gradient(circle_at_top,rgba(95,136,179,0.16),transparent_58%)]"></div>
+    <div class="pointer-events-none absolute right-[-120px] top-24 h-[320px] w-[320px] rounded-full bg-[radial-gradient(circle,rgba(35,74,115,0.14),transparent_64%)] blur-3xl"></div>
+    <div class="pointer-events-none absolute left-[-80px] top-[40%] h-[260px] w-[260px] rounded-full bg-[radial-gradient(circle,rgba(35,74,115,0.12),transparent_62%)] blur-3xl"></div>
 
     <div class="mx-auto w-full max-w-[1440px] px-3 py-5 md:px-4">
       <AppTopBar
@@ -82,50 +127,54 @@ function tagClass(tone: string) {
       />
 
       <main id="main-content">
-        <MenuScreen
-          v-if="screen === 'menu'"
-          :company-name="companyName"
-          :current-difficulty="currentDifficulty"
-          :current-scenario="currentScenario"
-          :difficulties="difficulties"
-          :quick-start-steps="quickStartSteps"
-          :save-catalog="saveCatalog"
-          :scenario-id="scenarioId"
-          :scenarios="scenarios"
-          @delete-save="openDeleteModal"
-          @open-help="openHelp"
-          @restore-session="restoreSession"
-          @select-difficulty="selectDifficulty"
-          @select-scenario="selectScenario"
-          @start-scenario="startScenario"
-          @update-company-name="setCompanyName"
-        />
+        <RouterView v-slot="{ Component }">
+          <component
+            :is="Component"
+            v-if="screen === 'menu'"
+            :company-name="companyName"
+            :current-difficulty="currentDifficulty"
+            :current-scenario="currentScenario"
+            :difficulties="difficulties"
+            :quick-start-steps="quickStartSteps"
+            :save-catalog="saveCatalog"
+            :scenario-id="scenarioId"
+            :scenarios="scenarios"
+            @delete-save="openDeleteModal"
+            @open-help="openHelp"
+            @restore-session="handleRestoreSession"
+            @select-difficulty="selectDifficulty"
+            @select-scenario="selectScenario"
+            @start-scenario="handleStartScenario"
+            @update-company-name="setCompanyName"
+          />
 
-        <GameScreen
-          v-else-if="session && preview && objectiveStatus"
-          :auto-save-stamp="autoSaveStamp"
-          :decision-presets="decisionPresets"
-          :objective-status="objectiveStatus"
-          :preview="preview"
-          :save-catalog="saveCatalog"
-          :session="session"
-          :tag-class="tagClass"
-          :turn-guide-items="turnGuideItems"
-          @advance-turn="advanceTurn"
-          @apply-preset="applyDecisionPreset"
-          @open-help="openHelp"
-          @open-menu="openMenuModal"
-          @open-restart="openRestartModal"
-          @restore-session="restoreSession"
-          @save-slot="persistManualSave"
-          @update-field="updateDraftField"
-        />
+          <component
+            :is="Component"
+            v-else-if="session && preview && objectiveStatus"
+            :auto-save-stamp="autoSaveStamp"
+            :decision-presets="decisionPresets"
+            :objective-status="objectiveStatus"
+            :preview="preview"
+            :save-catalog="saveCatalog"
+            :session="session"
+            :tag-class="tagClass"
+            :turn-guide-items="turnGuideItems"
+            @advance-turn="advanceTurn"
+            @apply-preset="applyDecisionPreset"
+            @open-help="openHelp"
+            @open-menu="openMenuModal"
+            @open-restart="openRestartModal"
+            @restore-session="handleRestoreSession"
+            @save-slot="persistManualSave"
+            @update-field="updateDraftField"
+          />
+        </RouterView>
       </main>
     </div>
 
     <div class="sr-only" aria-live="polite">{{ liveMessage }}</div>
 
-    <ConfirmModal :modal="modal" @close="modal = null" @confirm="confirmModal" />
+    <ConfirmModal :modal="modal" @close="modal = null" @confirm="handleConfirmModal" />
     <HelpDrawer
       :current-scenario-title="currentScenario.title"
       :decision-fields="decisionFields"

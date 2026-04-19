@@ -1,7 +1,17 @@
 import { getScenario } from "@/simulation/scenarios";
 import { clamp } from "@/simulation/helpers/math";
 import type { DraftPlan, ObjectiveStatus, PreviewSummary, SessionState } from "@/types/app";
-import type { DecisionFieldDefinition, DecisionPreset, HelpSection, QuickStartStep, TurnGuideItem } from "@/types/help";
+import { formatCurrency } from "@/ui/formatters";
+import type {
+  DecisionFieldDefinition,
+  DecisionFieldGroup,
+  DecisionPreset,
+  DecisionQuickOption,
+  DecisionWorkbenchField,
+  HelpSection,
+  QuickStartStep,
+  TurnGuideItem
+} from "@/types/help";
 
 export const QUICK_START_STEPS: QuickStartStep[] = [
   {
@@ -28,6 +38,7 @@ export const DECISION_FIELD_DEFS: DecisionFieldDefinition[] = [
   {
     detail: "低价能抢需求，高价能抬毛利，但太离谱会同时伤销量和品牌。",
     field: "price",
+    group: "market",
     helper: "直接影响需求弹性与单位毛利",
     label: "定价",
     step: 1
@@ -35,6 +46,7 @@ export const DECISION_FIELD_DEFS: DecisionFieldDefinition[] = [
   {
     detail: "本期实际可卖量不会超过可用产能，计划过高只会把缺货风险暴露得更快。",
     field: "productionTarget",
+    group: "production",
     helper: "上限受当前产能约束",
     label: "计划生产",
     step: 1
@@ -42,6 +54,7 @@ export const DECISION_FIELD_DEFS: DecisionFieldDefinition[] = [
   {
     detail: "营销决定短期需求和品牌热度，砍得太狠往往下回合才开始痛。",
     field: "marketingBudget",
+    group: "market",
     helper: "拉动品牌认知与销量",
     label: "营销预算",
     step: 1000
@@ -49,6 +62,7 @@ export const DECISION_FIELD_DEFS: DecisionFieldDefinition[] = [
   {
     detail: "研发对质量和中长期竞争力更关键，连续几期过低会把后劲抽空。",
     field: "rndBudget",
+    group: "organization",
     helper: "影响质量与长期竞争力",
     label: "研发预算",
     step: 1000
@@ -56,6 +70,7 @@ export const DECISION_FIELD_DEFS: DecisionFieldDefinition[] = [
   {
     detail: "招聘会推高当期现金流出，裁员会压士气；这是短期财务和组织稳定之间的取舍。",
     field: "hiringChange",
+    group: "organization",
     helper: "正数为招聘，负数为裁撤",
     label: "人员增减",
     step: 1
@@ -63,6 +78,7 @@ export const DECISION_FIELD_DEFS: DecisionFieldDefinition[] = [
   {
     detail: "扩产本期先花钱，下期才释放能力，别在现金已经很紧的时候盲目加杠杆。",
     field: "capacityInvestment",
+    group: "production",
     helper: "会在下一期带来新增产能",
     label: "扩产投入",
     step: 1000
@@ -70,6 +86,7 @@ export const DECISION_FIELD_DEFS: DecisionFieldDefinition[] = [
   {
     detail: "新增融资可以救短期现金，但也会带来后续利息和更高失败风险。",
     field: "borrowAmount",
+    group: "finance",
     helper: "立刻补现金，但未来利息更高",
     label: "新增融资",
     step: 1000
@@ -77,11 +94,187 @@ export const DECISION_FIELD_DEFS: DecisionFieldDefinition[] = [
   {
     detail: "主动还款能降低杠杆，但如果把安全垫还没了，下一次负面事件就可能直接失守。",
     field: "repayAmount",
+    group: "finance",
     helper: "降低杠杆，但挤压当期现金",
     label: "主动还款",
     step: 1000
   }
 ];
+
+const groupMeta: Record<DecisionFieldGroup["id"], Pick<DecisionFieldGroup, "description" | "id" | "title">> = {
+  market: {
+    description: "价格和营销一起决定需求质量，别只盯销量，也别只盯毛利。",
+    id: "market",
+    title: "市场"
+  },
+  production: {
+    description: "产量和扩产是兑现增长的底座，产能吃满时要比平时更谨慎。",
+    id: "production",
+    title: "生产"
+  },
+  organization: {
+    description: "人员与研发共同影响执行力和后劲，短期省钱可能会透支长期表现。",
+    id: "organization",
+    title: "组织"
+  },
+  finance: {
+    description: "融资和还款决定安全垫厚度，优先保证现金韧性，再考虑去杠杆。",
+    id: "finance",
+    title: "资金"
+  }
+};
+
+const integerFormatter = new Intl.NumberFormat("zh-CN");
+
+function formatPlanValue(field: keyof DraftPlan, value: number): string {
+  if (field === "marketingBudget" || field === "rndBudget" || field === "capacityInvestment" || field === "borrowAmount" || field === "repayAmount") {
+    return formatCurrency(value);
+  }
+
+  if (field === "hiringChange") {
+    return `${value > 0 ? "+" : ""}${Math.round(value)} 人`;
+  }
+
+  if (field === "productionTarget") {
+    return `${integerFormatter.format(Math.round(value))} 台`;
+  }
+
+  return `${Math.round(value)} 元`;
+}
+
+function buildQuickOptions(state: SessionState, field: keyof DraftPlan): DecisionQuickOption[] {
+  const params = getScenario(state.scenarioId).parameters;
+  const maxLayoff = Math.max(0, state.employees - params.minEmployees);
+  const { max, min } = buildFieldLimits(state, field);
+  const bounded = (value: number) => clamp(Math.round(value), min, max);
+
+  if (field === "price") {
+    return [
+      { label: "抢量", value: bounded(params.referencePrice - 2) },
+      { label: "参考价", value: bounded(params.referencePrice) },
+      { label: "提利润", value: bounded(params.referencePrice + 2) }
+    ];
+  }
+
+  if (field === "productionTarget") {
+    return [
+      { label: "保守", value: bounded(state.capacity * 0.72) },
+      { label: "均衡", value: bounded(state.capacity * 0.85) },
+      { label: "吃满", value: bounded(state.capacity) }
+    ];
+  }
+
+  if (field === "marketingBudget") {
+    return [
+      { label: "收缩", value: bounded(params.recommendedMarketing * 0.7) },
+      { label: "建议值", value: bounded(params.recommendedMarketing) },
+      { label: "冲增长", value: bounded(params.recommendedMarketing * 1.3) }
+    ];
+  }
+
+  if (field === "rndBudget") {
+    return [
+      { label: "守底线", value: bounded(params.recommendedRnD * 0.7) },
+      { label: "建议值", value: bounded(params.recommendedRnD) },
+      { label: "加码", value: bounded(params.recommendedRnD * 1.2) }
+    ];
+  }
+
+  if (field === "hiringChange") {
+    return [
+      { label: "裁 2 人", value: bounded(-Math.min(2, maxLayoff)) },
+      { label: "维持", value: bounded(0) },
+      { label: "招 2 人", value: bounded(Math.min(2, params.maxHirePerTurn)) }
+    ];
+  }
+
+  if (field === "capacityInvestment") {
+    return [
+      { label: "先不扩", value: bounded(0) },
+      { label: "轻扩", value: bounded(params.capacityExpansionUnitCost * 3) },
+      { label: "重扩", value: bounded(params.capacityExpansionUnitCost * 6) }
+    ];
+  }
+
+  if (field === "borrowAmount") {
+    return [
+      { label: "不融资", value: bounded(0) },
+      { label: "补安全垫", value: bounded(params.cashSafetyBuffer) },
+      { label: "顶格准备", value: bounded(params.maxBorrowPerTurn) }
+    ];
+  }
+
+  return [
+    { label: "不还款", value: bounded(0) },
+    { label: "还一部分", value: bounded(Math.min(state.debt * 0.2, Math.max(0, state.cash * 0.18))) },
+    { label: "尽量降杠杆", value: bounded(Math.min(state.debt, Math.max(0, state.cash * 0.35))) }
+  ];
+}
+
+function buildFieldLimits(state: SessionState, field: keyof DraftPlan): Pick<DecisionWorkbenchField, "limitHint" | "max" | "min"> {
+  const params = getScenario(state.scenarioId).parameters;
+  const maxLayoff = Math.max(0, state.employees - params.minEmployees);
+
+  if (field === "price") {
+    return { limitHint: `范围 ${params.minPrice} - ${params.maxPrice} 元`, max: params.maxPrice, min: params.minPrice };
+  }
+
+  if (field === "productionTarget") {
+    return { limitHint: `不能超过当前产能 ${integerFormatter.format(state.capacity)} 台`, max: state.capacity, min: 0 };
+  }
+
+  if (field === "marketingBudget") {
+    return { limitHint: `本期上限 ${formatCurrency(params.maxMarketing)}`, max: params.maxMarketing, min: 0 };
+  }
+
+  if (field === "rndBudget") {
+    return { limitHint: `本期上限 ${formatCurrency(params.maxRnD)}`, max: params.maxRnD, min: 0 };
+  }
+
+  if (field === "hiringChange") {
+    return {
+      limitHint: `可裁 ${maxLayoff} 人，可招 ${params.maxHirePerTurn} 人`,
+      max: params.maxHirePerTurn,
+      min: -maxLayoff
+    };
+  }
+
+  if (field === "capacityInvestment") {
+    return {
+      limitHint: `上限 ${formatCurrency(params.maxCapacityInvestment)}，下期生效`,
+      max: params.maxCapacityInvestment,
+      min: 0
+    };
+  }
+
+  if (field === "borrowAmount") {
+    return {
+      limitHint: `本期最多新增 ${formatCurrency(params.maxBorrowPerTurn)}`,
+      max: params.maxBorrowPerTurn,
+      min: 0
+    };
+  }
+
+  return {
+    limitHint: `最多偿还当前债务 ${formatCurrency(state.debt)}`,
+    max: state.debt,
+    min: 0
+  };
+}
+
+export function buildDecisionWorkbenchGroups(state: SessionState): DecisionFieldGroup[] {
+  const defaultPlan = clampPlan(state, {});
+
+  return Object.values(groupMeta).map((group) => ({
+    ...group,
+    fields: DECISION_FIELD_DEFS.filter((item) => item.group === group.id).map((item) => ({
+      ...item,
+      baseline: `基线 ${formatPlanValue(item.field, defaultPlan[item.field])}`,
+      ...buildFieldLimits(state, item.field),
+      quickOptions: buildQuickOptions(state, item.field)
+    }))
+  }));
+}
 
 function roundToStep(value: number, step: number): number {
   return Math.round(value / step) * step;

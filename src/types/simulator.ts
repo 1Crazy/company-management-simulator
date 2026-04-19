@@ -119,6 +119,7 @@ export interface TurnReport {
   impactLabels: ImpactLabel[];
   insights: InsightItem[];
   market: MarketOutcome;
+  newlyAchievedMilestones: ObjectiveMilestoneStatus[];
   objectiveStatus: ObjectiveStatus;
   plan: DraftPlan;
   turn: number;

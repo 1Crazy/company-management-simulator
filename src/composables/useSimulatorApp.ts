@@ -10,15 +10,13 @@ import type {
   PreviewSummary,
   SaveCatalog,
   ScenarioSummary,
-  ScreenMode,
   SessionSnapshot,
   SessionState
 } from "@/types/app";
 import { DECISION_FIELD_DEFS, QUICK_START_STEPS, buildDecisionPresets, buildHelpSections, buildTurnGuideItems, createPlanFromPreset } from "@/ui/playbook";
 import { saveSlotLabel } from "@/ui/formatters";
 
-export function useSimulatorApp() {
-  const screen = ref<ScreenMode>("menu");
+function createSimulatorApp() {
   const scenarioId = ref<string>(SCENARIOS[0].id);
   const difficultyId = ref<string>(DIFFICULTIES[1].id);
   const companyName = ref<string>(getScenario(SCENARIOS[0].id).defaultCompanyName);
@@ -84,8 +82,8 @@ export function useSimulatorApp() {
     }) as SessionState;
 
     session.value = createSession(state);
-    screen.value = "game";
     announce(`已启动 ${state.companyName} 的新经营局。`);
+    return true;
   }
 
   function restoreSession(slotId: string) {
@@ -93,16 +91,16 @@ export function useSimulatorApp() {
     if (!snapshot) {
       announce("这个存档不可用，可能已经失效。");
       refreshSaveCatalog();
-      return;
+      return false;
     }
 
     session.value = snapshot;
-    screen.value = "game";
     scenarioId.value = snapshot.state.scenarioId;
     difficultyId.value = snapshot.state.difficultyId;
     companyName.value = snapshot.state.companyName;
     refreshSaveCatalog();
     announce(`已读取 ${saveSlotLabel(slotId)}。`);
+    return true;
   }
 
   function persistManualSave(slotId: string) {
@@ -154,32 +152,34 @@ export function useSimulatorApp() {
   }
 
   function backToMenu() {
-    screen.value = "menu";
     modal.value = null;
     announce("已返回开局面板。");
   }
 
   function confirmModal() {
     if (!modal.value) {
-      return;
+      return null;
     }
 
-    if (modal.value.action === "delete-save" && modal.value.slotId) {
-      deleteSaveRecord(modal.value.slotId);
+    const { action, slotId } = modal.value;
+
+    if (action === "delete-save" && slotId) {
+      deleteSaveRecord(slotId);
       refreshSaveCatalog();
-      announce(`${saveSlotLabel(modal.value.slotId)} 已删除。`);
+      announce(`${saveSlotLabel(slotId)} 已删除。`);
     }
 
-    if (modal.value.action === "restart-run") {
+    if (action === "restart-run") {
       resetScenario();
     }
 
-    if (modal.value.action === "back-to-menu") {
+    if (action === "back-to-menu") {
       backToMenu();
-      return;
+      return action;
     }
 
     modal.value = null;
+    return action;
   }
 
   function updateDraftField(field: keyof DraftPlan, value: number) {
@@ -245,17 +245,21 @@ export function useSimulatorApp() {
     };
   }
 
+  function setCompanyName(value: string) {
+    companyName.value = value;
+  }
+
   return {
+    applyDecisionPreset,
     autoSaveStamp,
-    backToMenu,
     canAdvance,
-    companyName,
     closeHelp,
+    companyName,
     confirmModal,
-    decisionFields: DECISION_FIELD_DEFS,
-    decisionPresets,
     currentDifficulty,
     currentScenario,
+    decisionFields: DECISION_FIELD_DEFS,
+    decisionPresets,
     difficulties,
     difficultyId,
     helpOpen,
@@ -273,18 +277,20 @@ export function useSimulatorApp() {
     saveCatalog,
     scenarioId,
     scenarios,
-    screen,
     selectDifficulty,
     selectScenario,
     session,
-    setCompanyName: (value: string) => {
-      companyName.value = value;
-    },
+    setCompanyName,
     startScenario,
-    applyDecisionPreset,
     advanceTurn,
     restoreSession,
     turnGuideItems,
     updateDraftField
   };
+}
+
+const simulatorApp = createSimulatorApp();
+
+export function useSimulatorApp() {
+  return simulatorApp;
 }

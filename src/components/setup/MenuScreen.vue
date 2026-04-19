@@ -28,7 +28,7 @@ defineEmits<{
 </script>
 
 <template>
-  <section class="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+  <section class="grid items-start gap-5 xl:grid-cols-[minmax(0,1.18fr)_minmax(320px,0.82fr)]">
     <div class="grid gap-4">
       <ScenarioSetupPanel
         :company-name="companyName"
@@ -52,11 +52,13 @@ defineEmits<{
       />
     </div>
 
-    <ScenarioSidebarPanel
-      :current-scenario="currentScenario"
-      :save-catalog="saveCatalog"
-      @delete-save="$emit('deleteSave', $event)"
-      @restore-session="$emit('restoreSession', $event)"
-    />
+    <div class="xl:sticky xl:top-28">
+      <ScenarioSidebarPanel
+        :current-scenario="currentScenario"
+        :save-catalog="saveCatalog"
+        @delete-save="$emit('deleteSave', $event)"
+        @restore-session="$emit('restoreSession', $event)"
+      />
+    </div>
   </section>
 </template>

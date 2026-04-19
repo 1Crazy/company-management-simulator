@@ -22,6 +22,7 @@ export function settleTurn(state: SimulationState, rawPlan: Partial<TurnReport["
   const scenario = getScenario(state.scenarioId);
   const difficulty = getDifficulty(state.difficultyId);
   const validation = validatePlan(state, rawPlan);
+  const previousObjectiveStatus = getObjectiveStatus(state);
 
   if (!validation.valid) {
     return {
@@ -122,6 +123,7 @@ export function settleTurn(state: SimulationState, rawPlan: Partial<TurnReport["
     impactLabels: [],
     insights: [],
     market,
+    newlyAchievedMilestones: [],
     objectiveStatus: getObjectiveStatus(nextState),
     plan,
     turn: nextState.turn,
@@ -152,6 +154,9 @@ export function settleTurn(state: SimulationState, rawPlan: Partial<TurnReport["
   };
   const outcome = evaluateOutcome(stateWithReport);
   baseReport.objectiveStatus = outcome.objectiveStatus;
+  baseReport.newlyAchievedMilestones = outcome.objectiveStatus.milestones.filter(
+    (milestone, index) => milestone.achieved && !previousObjectiveStatus.milestones[index]?.achieved
+  );
 
   const finalState: SimulationState = {
     ...stateWithReport,

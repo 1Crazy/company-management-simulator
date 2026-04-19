@@ -42,17 +42,10 @@ defineEmits<{
     @open-restart="$emit('openRestart')"
   />
 
-  <TurnGuidePanel
-    :items="turnGuideItems"
-    :objective-status="objectiveStatus"
-    :session="session"
-    @open-help="$emit('openHelp')"
-  />
-
   <KpiGrid :session="session" />
 
-  <section class="mt-4 grid items-start gap-4 xl:grid-cols-[minmax(0,1.35fr)_360px]">
-    <div class="grid gap-4">
+  <section class="mt-4 grid items-start gap-4 xl:grid-cols-[minmax(0,1.42fr)_340px]">
+    <div class="grid gap-4 min-w-0">
       <DecisionPanel
         :presets="decisionPresets"
         :preview="preview"
@@ -66,15 +59,24 @@ defineEmits<{
       <BoardReportPanel :session="session" :tag-class="tagClass" />
     </div>
 
-    <ControlTowerPanel
-      :objective-status="objectiveStatus"
-      :save-catalog="saveCatalog"
-      :session="session"
-      @open-menu="$emit('openMenu')"
-      @open-restart="$emit('openRestart')"
-      @restore-session="$emit('restoreSession', $event)"
-      @save-slot="$emit('saveSlot', $event)"
-    />
+    <aside class="grid gap-4 xl:sticky xl:top-28">
+      <TurnGuidePanel
+        :items="turnGuideItems"
+        :objective-status="objectiveStatus"
+        :session="session"
+        @open-help="$emit('openHelp')"
+      />
+
+      <ControlTowerPanel
+        :objective-status="objectiveStatus"
+        :save-catalog="saveCatalog"
+        :session="session"
+        @open-menu="$emit('openMenu')"
+        @open-restart="$emit('openRestart')"
+        @restore-session="$emit('restoreSession', $event)"
+        @save-slot="$emit('saveSlot', $event)"
+      />
+    </aside>
   </section>
 
   <ChartsPanel
